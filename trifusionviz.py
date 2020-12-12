@@ -8,13 +8,19 @@ import math
 
 class Noeud:
     numero = 0
+    profondeur_max = 0
 
     def __init__(self, contenu, profondeur):
         self.numero = str(Noeud.numero)
         Noeud.numero += 1
         self.liste = contenu
         self.contenu = str(contenu)
-        self.shape = "circle" if len(contenu) == 1 else "invtrapezium"
+        if len(contenu) == 1:
+            self.shape = "circle"
+        elif profondeur <= Noeud.profondeur_max / 2:
+            self.shape = "invtrapezium"
+        else:
+            self.shape = "trapezium"
         self.couleur = str(profondeur)
 
     def visu(self, sousgraphe):
@@ -39,7 +45,7 @@ class Arc:
 
 
 def est_plus_petit(element1, element2, fonction=None):
-    if not fonction: fonction= lambda a, b: a < b
+    if not fonction: fonction = lambda a, b: a < b
     return fonction(element1, element2)
 
 
@@ -75,6 +81,7 @@ class trifusionviz:
     def __init__(self, liste):
         self.graphe = graphviz.Digraph(engine="dot")
         self.nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
+        Noeud.profondeur_max = self.nb_couleurs
         self.fonction_ordre = None
         self.graphe.attr("node", colorscheme=f"rdylgn{self.nb_couleurs}")
         self.graphe.attr("node", style="filled, rounded")
@@ -123,8 +130,8 @@ class trifusionviz:
 if __name__ == "__main__":
     import random
 
-    
-    liste = list(range(20))
+
+    liste = list(range(5))
     random.shuffle(liste)
 
     t = trifusionviz(liste)
