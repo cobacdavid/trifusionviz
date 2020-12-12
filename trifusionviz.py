@@ -11,6 +11,7 @@ class Noeud:
     def __init__(self, contenu, profondeur):
         self.numero = str(Noeud.numero)
         Noeud.numero += 1
+        self.liste = contenu
         self.contenu = str(contenu)
         self.shape = "circle" if len(contenu) == 1 else "invtrapezium"
         self.couleur = str(profondeur)
@@ -22,6 +23,20 @@ class Noeud:
                         fillcolor=self.couleur)
 
 
+class Arc:
+    def __init__(self, noeud1, noeud2):
+        self.source = noeud1
+        self.destination = noeud2
+    
+    def visu(self, sousgraphe):
+        sousgraphe.edge(self.source.numero, self.destination.numero,
+                style="solid",
+                headport="n",
+                tailport="s",
+                arrowhead="normal",
+                arrowsize=".5")
+
+    
 def est_plus_petit(element1, element2, fonction=None):
     if not fonction: fonction= lambda a, b: a < b
     return fonction(element1, element2)
@@ -55,8 +70,10 @@ def fusion(gauche, droite, fonction_ordre):
     return resultat
 
 
-def tri_fusion(liste, graphe, numero, nb_couleurs, fonction_ordre, profondeur=1):
-    if len(liste) == 1: return liste, numero
+def tri_fusion(noeud, graphe, nb_couleurs, fonction_ordre, profondeur=1):
+    liste = noeud.liste
+    
+    if len(liste) == 1: return noeud
 
     iMilieu = (len(liste)+1) // 2
     g = liste[:iMilieu]
@@ -64,43 +81,27 @@ def tri_fusion(liste, graphe, numero, nb_couleurs, fonction_ordre, profondeur=1)
 
     og = Noeud(g, profondeur + 1)
     od = Noeud(d, profondeur + 1)
+
     dv = graphviz.Digraph()
     og.visu(dv)
     od.visu(dv)
-    dv.edge(numero, og.numero,
-                style="solid",
-                headport="n",
-                tailport="s",
-                arrowhead="normal",
-                arrowsize=".5")
-    dv.edge(numero, od.numero,
-                style="solid",
-                headport="n",
-                tailport="s",
-                arrowhead="normal",
-                arrowsize=".5")
+    Arc(noeud, og).visu(dv)
+    Arc(noeud, od).visu(dv)
     graphe.subgraph(dv)
 
-    fg, ng = tri_fusion(g, graphe, og.numero, nb_couleurs, fonction_ordre, profondeur + 1)
-    fd, nd = tri_fusion(d, graphe, od.numero, nb_couleurs, fonction_ordre, profondeur + 1)
-    f = fusion(fg, fd, fonction_ordre)
-    mlf = Noeud(f, nb_couleurs - profondeur + 1)
+    ng = tri_fusion(og, graphe, nb_couleurs, fonction_ordre, profondeur + 1)
+    nd = tri_fusion(od, graphe, nb_couleurs, fonction_ordre, profondeur + 1)
+    f = fusion(ng.liste, nd.liste, fonction_ordre)
+
+    nf = Noeud(f, nb_couleurs - profondeur + 1)
 
     cb = graphviz.Digraph()
-    mlf.visu(cb)
-    cb.edge(ng, mlf.numero,
-                headport="n",
-                tailport="s",
-                arrowhead="normal",
-                arrowsize=".5")
-    cb.edge(nd, mlf.numero,
-                headport="n",
-                tailport="s",
-                arrowhead="normal",
-                arrowsize=".5")
+    nf.visu(cb)
+    Arc(ng, nf).visu(cb)
+    Arc(nd, nf).visu(cb)
     graphe.subgraph(cb)
 
-    return f, mlf.numero
+    return nf
 
 
 def tri_visu(liste, fonction_ordre=None, fichier_sortie=None, format=None):
@@ -112,10 +113,10 @@ def tri_visu(liste, fonction_ordre=None, fichier_sortie=None, format=None):
     g.attr("node", colorscheme=f"rdylgn{nb_couleurs}")
     g.attr("node", style="filled, rounded")
 
-    racine = Noeud(liste, 1)
-    racine.visu(g)
+    noeud_racine = Noeud(liste, 1)
+    noeud_racine.visu(g)
         
-    tri_fusion(liste, g, racine.numero, nb_couleurs, fonction_ordre=fonction_ordre)
+    tri_fusion(noeud_racine, g, nb_couleurs, fonction_ordre=fonction_ordre)
     g.render()
 
 
