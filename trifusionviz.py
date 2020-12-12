@@ -5,13 +5,22 @@ __date__ = 20201211
 import graphviz
 import math
 
-class maliste:
+class Noeud:
     numero = 0
 
-    def __init__(self, contenu):
-        self.numero = str(maliste.numero)
-        maliste.numero += 1
+    def __init__(self, contenu, profondeur):
+        self.numero = str(Noeud.numero)
+        Noeud.numero += 1
         self.contenu = str(contenu)
+        self.shape = "circle" if len(contenu) == 1 else "invtrapezium"
+        self.couleur = str(profondeur)
+
+    def visu(self, sousgraphe):
+        sousgraphe.node(self.numero,
+                        label=self.contenu,
+                        shape=self.shape,
+                        fillcolor=self.couleur)
+
 
 def est_plus_petit(element1, element2, fonction=None):
     if not fonction: fonction= lambda a, b: a < b
@@ -53,30 +62,11 @@ def tri_fusion(liste, graphe, numero, nb_couleurs, fonction_ordre, profondeur=1)
     g = liste[:iMilieu]
     d = liste[iMilieu:]
 
-    og = maliste(g)
-    od = maliste(d)
-
-    if len(g) == 1:
-        shapeg = "circle"
-    else:
-        shapeg = "invtrapezium"
-    if len(d) == 1:
-        shaped = "circle"
-    else:
-        shaped = "invtrapezium"
-    
-
+    og = Noeud(g, profondeur + 1)
+    od = Noeud(d, profondeur + 1)
     dv = graphviz.Digraph()
-    
-    dv.node(og.numero,
-                label=og.contenu,
-                shape=shapeg,
-                fillcolor=str(profondeur+1))
-    dv.node(od.numero,
-                label=od.contenu,
-                shape=shaped,
-                fillcolor=str(profondeur+1))
-    
+    og.visu(dv)
+    od.visu(dv)
     dv.edge(numero, og.numero,
                 style="solid",
                 headport="n",
@@ -85,28 +75,19 @@ def tri_fusion(liste, graphe, numero, nb_couleurs, fonction_ordre, profondeur=1)
                 arrowsize=".5")
     dv.edge(numero, od.numero,
                 style="solid",
-                shape=shaped,
                 headport="n",
                 tailport="s",
                 arrowhead="normal",
                 arrowsize=".5")
-
     graphe.subgraph(dv)
 
     fg, ng = tri_fusion(g, graphe, og.numero, nb_couleurs, fonction_ordre, profondeur + 1)
     fd, nd = tri_fusion(d, graphe, od.numero, nb_couleurs, fonction_ordre, profondeur + 1)
     f = fusion(fg, fd, fonction_ordre)
-    mlf = maliste(f)
+    mlf = Noeud(f, nb_couleurs - profondeur + 1)
 
     cb = graphviz.Digraph()
-    
-    cb.node(mlf.numero, label=mlf.contenu,
-                shape="trapezium",
-                fillcolor=str(nb_couleurs - profondeur + 1))
-    cb.node(mlf.numero, label=mlf.contenu,
-                shape="trapezium",
-                fillcolor=str(nb_couleurs - profondeur + 1))
-
+    mlf.visu(cb)
     cb.edge(ng, mlf.numero,
                 headport="n",
                 tailport="s",
@@ -117,7 +98,6 @@ def tri_fusion(liste, graphe, numero, nb_couleurs, fonction_ordre, profondeur=1)
                 tailport="s",
                 arrowhead="normal",
                 arrowsize=".5")
-
     graphe.subgraph(cb)
 
     return f, mlf.numero
@@ -131,16 +111,9 @@ def tri_visu(liste, fonction_ordre=None, fichier_sortie=None, format=None):
     nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
     g.attr("node", colorscheme=f"rdylgn{nb_couleurs}")
     g.attr("node", style="filled, rounded")
-    if len(liste) == 1:
-        shape = "circle"
-    else:
-        shape = "invtrapezium"
-    
-    racine = maliste(liste)
 
-    g.node(racine.numero, label=racine.contenu,
-           shape=shape,
-           fillcolor="1")
+    racine = Noeud(liste, 1)
+    racine.visu(g)
         
     tri_fusion(liste, g, racine.numero, nb_couleurs, fonction_ordre=fonction_ordre)
     g.render()
@@ -150,7 +123,7 @@ if __name__ == "__main__":
     import random
 
     
-    liste = list(range(20))
+    liste = list(range(30))
     random.shuffle(liste)
 
     tri_visu(liste, lambda x, y: str(x) < str(y), "ordrelexico", "png")
