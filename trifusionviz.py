@@ -5,6 +5,7 @@ __date__ = 20201211
 import graphviz
 import math
 
+
 class Noeud:
     numero = 0
 
@@ -36,7 +37,7 @@ class Arc:
                 arrowhead="normal",
                 arrowsize=".5")
 
-    
+
 def est_plus_petit(element1, element2, fonction=None):
     if not fonction: fonction= lambda a, b: a < b
     return fonction(element1, element2)
@@ -70,62 +71,66 @@ def fusion(gauche, droite, fonction_ordre):
     return resultat
 
 
-def tri_fusion(noeud, graphe, nb_couleurs, fonction_ordre, profondeur=1):
-    liste = noeud.liste
-    
-    if len(liste) == 1: return noeud
+class trifusionviz:
+    def __init__(self, liste):
+        self.graphe = graphviz.Digraph(engine="dot")
+        self.nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
+        self.fonction_ordre = None
+        self.graphe.attr("node", colorscheme=f"rdylgn{self.nb_couleurs}")
+        self.graphe.attr("node", style="filled, rounded")
+        #
+        self.racine = Noeud(liste, 1)
+        self.racine.visu(self.graphe)
 
-    iMilieu = (len(liste)+1) // 2
-    g = liste[:iMilieu]
-    d = liste[iMilieu:]
+    def sortie(self, nom_fichier, format="pdf"):
+        self._tri_fusion(self.racine)
+        self.graphe.render(filename=nom_fichier, format=format)
 
-    og = Noeud(g, profondeur + 1)
-    od = Noeud(d, profondeur + 1)
+    def _tri_fusion(self, noeud, profondeur=1):
+        liste = noeud.liste
 
-    dv = graphviz.Digraph()
-    og.visu(dv)
-    od.visu(dv)
-    Arc(noeud, og).visu(dv)
-    Arc(noeud, od).visu(dv)
-    graphe.subgraph(dv)
+        if len(liste) == 1: return noeud
 
-    ng = tri_fusion(og, graphe, nb_couleurs, fonction_ordre, profondeur + 1)
-    nd = tri_fusion(od, graphe, nb_couleurs, fonction_ordre, profondeur + 1)
-    f = fusion(ng.liste, nd.liste, fonction_ordre)
+        iMilieu = (len(liste)+1) // 2
+        g = liste[:iMilieu]
+        d = liste[iMilieu:]
 
-    nf = Noeud(f, nb_couleurs - profondeur + 1)
+        og = Noeud(g, profondeur + 1)
+        od = Noeud(d, profondeur + 1)
 
-    cb = graphviz.Digraph()
-    nf.visu(cb)
-    Arc(ng, nf).visu(cb)
-    Arc(nd, nf).visu(cb)
-    graphe.subgraph(cb)
+        dv = graphviz.Digraph()
+        og.visu(dv)
+        od.visu(dv)
+        Arc(noeud, og).visu(dv)
+        Arc(noeud, od).visu(dv)
+        self.graphe.subgraph(dv)
 
-    return nf
+        ng = self._tri_fusion(og, profondeur + 1)
+        nd = self._tri_fusion(od, profondeur + 1)
+        f = fusion(ng.liste, nd.liste, self.fonction_ordre)
 
+        nf = Noeud(f, self.nb_couleurs - profondeur + 1)
 
-def tri_visu(liste, fonction_ordre=None, fichier_sortie=None, format=None):
-    if not fichier_sortie: fichier_sortie = "trifusionviz"
-    if not format: format = "pdf"
-    
-    g = graphviz.Digraph(filename=fichier_sortie, format=format, engine="dot")
-    nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
-    g.attr("node", colorscheme=f"rdylgn{nb_couleurs}")
-    g.attr("node", style="filled, rounded")
+        cb = graphviz.Digraph()
+        nf.visu(cb)
+        Arc(ng, nf).visu(cb)
+        Arc(nd, nf).visu(cb)
+        self.graphe.subgraph(cb)
 
-    noeud_racine = Noeud(liste, 1)
-    noeud_racine.visu(g)
-        
-    tri_fusion(noeud_racine, g, nb_couleurs, fonction_ordre=fonction_ordre)
-    g.render()
+        return nf
 
 
 if __name__ == "__main__":
     import random
 
     
-    liste = list(range(30))
+    liste = list(range(20))
     random.shuffle(liste)
 
-    tri_visu(liste, lambda x, y: str(x) < str(y), "ordrelexico", "png")
-    tri_visu(liste)
+    t = trifusionviz(liste)
+    t.sortie("exemple_sortie")
+
+    u = trifusionviz(liste)
+    u.fonction_ordre = lambda x, y: str(x) < str(y)
+    u.sortie("exemple_sortie_lexico", "png")
+
