@@ -13,18 +13,22 @@ class maliste:
         maliste.numero += 1
         self.contenu = str(contenu)
 
+def est_plus_petit(element1, element2, fonction=None):
+    if not fonction: fonction= lambda a, b: a < b
+    return fonction(element1, element2)
 
-def fusion(gauche, droite):
+
+def fusion(gauche, droite, fonction_ordre):
     lG = len(gauche)
     lD = len(droite)
     iG, iD = 0, 0
     resultat = []
 
     while iG < lG and iD < lD:
-        if gauche[iG] < droite[iD]:
+        if est_plus_petit(gauche[iG], droite[iD], fonction_ordre):
             resultat.append(gauche[iG])
             iG += 1
-        elif gauche[iG] > droite[iD]:
+        elif est_plus_petit(droite[iD], gauche[iG], fonction_ordre):
             resultat.append(droite[iD])
             iD += 1
         else:
@@ -42,7 +46,7 @@ def fusion(gauche, droite):
     return resultat
 
 
-def tri_fusion(liste, graphe, numero, nb_couleurs, profondeur=1):
+def tri_fusion(liste, graphe, numero, nb_couleurs, fonction_ordre, profondeur=1):
     if len(liste) == 1: return liste, numero
 
     iMilieu = (len(liste)+1) // 2
@@ -89,9 +93,9 @@ def tri_fusion(liste, graphe, numero, nb_couleurs, profondeur=1):
 
     graphe.subgraph(dv)
 
-    fg, ng = tri_fusion(g, graphe, og.numero, nb_couleurs, profondeur + 1)
-    fd, nd = tri_fusion(d, graphe, od.numero, nb_couleurs, profondeur + 1)
-    f = fusion(fg, fd)
+    fg, ng = tri_fusion(g, graphe, og.numero, nb_couleurs, fonction_ordre, profondeur + 1)
+    fd, nd = tri_fusion(d, graphe, od.numero, nb_couleurs, fonction_ordre, profondeur + 1)
+    f = fusion(fg, fd, fonction_ordre)
     mlf = maliste(f)
 
     cb = graphviz.Digraph()
@@ -119,8 +123,11 @@ def tri_fusion(liste, graphe, numero, nb_couleurs, profondeur=1):
     return f, mlf.numero
 
 
-def tri_visu(liste):
-    g = graphviz.Digraph(filename="trifusionviz", format="pdf", engine="dot")
+def tri_visu(liste, fonction_ordre=None, fichier_sortie=None, format=None):
+    if not fichier_sortie: fichier_sortie = "trifusionviz"
+    if not format: format = "pdf"
+    
+    g = graphviz.Digraph(filename=fichier_sortie, format=format, engine="dot")
     nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
     g.attr("node", colorscheme=f"rdylgn{nb_couleurs}")
     g.attr("node", style="filled, rounded")
@@ -135,7 +142,7 @@ def tri_visu(liste):
            shape=shape,
            fillcolor="1")
         
-    tri_fusion(liste, g, racine.numero, nb_couleurs)
+    tri_fusion(liste, g, racine.numero, nb_couleurs, fonction_ordre=fonction_ordre)
     g.render()
 
 
@@ -146,4 +153,5 @@ if __name__ == "__main__":
     liste = list(range(20))
     random.shuffle(liste)
 
+    tri_visu(liste, lambda x, y: str(x) < str(y), "ordrelexico", "png")
     tri_visu(liste)
