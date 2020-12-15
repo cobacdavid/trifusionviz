@@ -28,7 +28,7 @@ u.sortie("exemple_sortie_lexico", "png")
 
 ## Exemple de sortie image
 
-![](./exemple_sortie_lexico.png =800x)
+![sortie](exemple_sortie_lexico.png =800x)
 
 
 ## Licence
