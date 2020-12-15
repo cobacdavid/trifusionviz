@@ -28,8 +28,7 @@ u.sortie("exemple_sortie_lexico", "png")
 
 ## Exemple de sortie image
 
-![sortie](exemple_sortie_lexico.png =800x)
-
+<img src="exemple_sortie_lexico.png" width="800">
 
 ## Licence
 CC-BY-NC-SA
