@@ -1,5 +1,11 @@
 # trifusionviz
 
+## Installation via [Pypi.org](https://pypi.org/project/trifusionviz/)
+
+``` bash
+$ pip3 install trifusionviz
+```
+
 ## Usage
 
 ``` python
@@ -19,6 +25,11 @@ u.fonction_ordre = lambda x, y: str(x) < str(y)
 u.sortie("exemple_sortie_lexico", "png")
 
 ```
+
+## Exemple de sortie image
+
+![](./exemple_sortie_lexico.png =800x)
+
 
 ## Licence
 CC-BY-NC-SA
