@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .trifusionviz import *
 
-version = '0.2'
+version = '0.3'
 
 if __name__ == "__main__":
     import random

@@ -11,6 +11,7 @@ class Noeud:
     numero = 0
     profondeur_max = 0
     liste_noeuds = []
+    liste_prof_cach = []
 
     def __init__(self, contenu, profondeur):
         self.numero = str(Noeud.numero)
@@ -37,8 +38,13 @@ class Noeud:
         Noeud.liste_noeuds.append(self)
 
     def visu(self, sousgraphe):
+        if int(self.couleur) not in Noeud.liste_prof_cach:
+            etiquette = self.contenu
+        else:
+            longueur_liste = len(self.contenu)
+            etiquette = " " * (longueur_liste  + 2)
         sousgraphe.node(self.numero,
-                        label=self.contenu,
+                        label=etiquette,
                         shape=self.shape,
                         fillcolor=self.couleur)
 
@@ -49,13 +55,13 @@ class Arc:
         self.destination = noeud2
     
     def visu(self, sousgraphe, tp="s", hp="n"):
-        sousgraphe.edge(self.source.numero, self.destination.numero,
+        # sousgraphe.attr("edge", headclip="false", tailclip="false")
+        sousgraphe.edge(self.source.numero+ ":c", self.destination.numero + ":c",
                 style="solid",
                 headport=hp,
                 tailport=tp,
                 arrowhead="normal",
                 arrowsize=".5")
-
 
 def est_plus_petit(element1, element2, fonction=None):
     if not fonction: fonction = lambda a, b: a < b
@@ -100,16 +106,25 @@ class trifusionviz:
         # condtion de terminaison
         self.nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
         Noeud.profondeur_max = self.nb_couleurs + 1
+        #
         self.fonction_ordre = None
-        self.graphe.attr("node", colorscheme=f"rdylgn{self.nb_couleurs}")
-        self.graphe.attr("node", style="filled, rounded")
+        self.noirblanc = False
+        self.profondeurs_cachees = []
         #
         self.racine = Noeud(liste, 1)
-        self.racine.visu(self.graphe)
 
     def sortie(self, nom_fichier, format="pdf"):
         self._tri_fusion(self.racine)
+        #
+        Noeud.liste_prof_cach = self.profondeurs_cachees
+        self.graphe.attr("node", colorscheme=f"rdylgn{self.nb_couleurs}")
+        self.graphe.attr("node", style="rounded")
+        if not self.noirblanc:
+            self.graphe.attr("node", style="filled")
+        # self.graphe.attr("node", style="invis")
+        self.racine.visu(self.graphe)
         self._trace()
+        #
         self.graphe.render(filename=nom_fichier, format=format)
 
     def _tri_fusion(self, noeud, profondeur=1):
@@ -150,3 +165,4 @@ class trifusionviz:
                 Arc(Noeud.liste_noeuds[n.dico['de']], n).visu(self.graphe)
             if n.dico['vers'] is not None:
                 Arc(n, Noeud.liste_noeuds[n.dico['vers']]).visu(self.graphe)
+
