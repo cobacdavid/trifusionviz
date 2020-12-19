@@ -12,7 +12,7 @@ $ pip3 install trifusionviz
 import trifusionviz as tfv
 import random
 
-liste = list(range(13))
+liste = list(range(17))
 random.shuffle(liste)
 
 t = tfv.trifusionviz(liste)

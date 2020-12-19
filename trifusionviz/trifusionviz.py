@@ -10,24 +10,31 @@ import math
 class Noeud:
     numero = 0
     profondeur_max = 0
-    dico_noeuds_profondeur = {}
+    liste_noeuds = []
 
     def __init__(self, contenu, profondeur):
         self.numero = str(Noeud.numero)
         Noeud.numero += 1
-        if profondeur in Noeud.dico_noeuds_profondeur:
-            Noeud.dico_noeuds_profondeur[profondeur].append(self)
-        else:
-            Noeud.dico_noeuds_profondeur[profondeur] = [self]
+
         self.liste = contenu
         self.contenu = str(contenu)
+        
         if len(contenu) == 1:
             self.shape = "circle"
         elif profondeur <= Noeud.profondeur_max / 2:
             self.shape = "invtrapezium"
         else:
             self.shape = "trapezium"
+
         self.couleur = str(profondeur)
+
+        self.dico = {"numero": int(self.numero),
+                     "contenu": contenu,
+                     "profondeur": profondeur,
+                     "de": None,
+                     "vers": None}
+
+        Noeud.liste_noeuds.append(self)
 
     def visu(self, sousgraphe):
         sousgraphe.node(self.numero,
@@ -86,8 +93,13 @@ def fusion(gauche, droite, fonction_ordre):
 class trifusionviz:
     def __init__(self, liste):
         self.graphe = graphviz.Digraph(engine="dot")
+        # init classe noeud
+        Noeud.liste_noeuds = []
+        Noeud.numero = 0
+        # 1 en trop car une profondeur manquante : celle de la
+        # condtion de terminaison
         self.nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
-        Noeud.profondeur_max = self.nb_couleurs
+        Noeud.profondeur_max = self.nb_couleurs + 1
         self.fonction_ordre = None
         self.graphe.attr("node", colorscheme=f"rdylgn{self.nb_couleurs}")
         self.graphe.attr("node", style="filled, rounded")
@@ -97,17 +109,7 @@ class trifusionviz:
 
     def sortie(self, nom_fichier, format="pdf"):
         self._tri_fusion(self.racine)
-        #
-        # pour régler le rank : ne créer les noeuds qu'après les
-        # avoir tous trouvés mais... refonte complète ?? car les
-        # arcs doivent aussi être définis après coup !
-        #
-        # for profondeur in Noeud.dico_noeuds_profondeur:
-        #     for noeud in Noeud.dico_noeuds_profondeur[profondeur]:
-        #         with self.graphe.subgraph() as s:
-        #             s.attr(rank="same")
-        #             pass 
-        #
+        self._trace()
         self.graphe.render(filename=nom_fichier, format=format)
 
     def _tri_fusion(self, noeud, profondeur=1):
@@ -118,29 +120,33 @@ class trifusionviz:
         iMilieu = (len(liste) + 1) // 2
         g = liste[:iMilieu]
         d = liste[iMilieu:]
-
         og = Noeud(g, profondeur + 1)
         od = Noeud(d, profondeur + 1)
-
-        # dv = graphviz.Digraph()
-        dv = self.graphe
-        og.visu(dv)
-        od.visu(dv)
-        Arc(noeud, og).visu(dv)
-        Arc(noeud, od).visu(dv)
-        # self.graphe.subgraph(dv)
 
         ng = self._tri_fusion(og, profondeur + 1)
         nd = self._tri_fusion(od, profondeur + 1)
         f = fusion(ng.liste, nd.liste, self.fonction_ordre)
-
         nf = Noeud(f, self.nb_couleurs - profondeur + 1)
 
-        # cb = graphviz.Digraph()
-        cb = self.graphe
-        nf.visu(cb)
-        Arc(ng, nf).visu(cb)
-        Arc(nd, nf).visu(cb)
-        # self.graphe.subgraph(cb)
+        og.dico["de"] = noeud.dico["numero"]
+        od.dico["de"] = noeud.dico["numero"]
+        ng.dico["vers"] = nf.dico["numero"]
+        nd.dico["vers"] = nf.dico["numero"]
 
         return nf
+
+    def _trace(self):
+        # clusters des noeuds avec la même profondeur
+        for i in range(Noeud.profondeur_max + 1):
+            with self.graphe.subgraph(name=str(i)) as prof:
+                prof.attr(rank="same")
+                for n in Noeud.liste_noeuds:
+                    if n.dico["profondeur"] == i:
+                        n.visu(prof)
+
+        # les arcs
+        for n in Noeud.liste_noeuds:
+            if n.dico['de'] is not None:
+                Arc(Noeud.liste_noeuds[n.dico['de']], n).visu(self.graphe)
+            if n.dico['vers'] is not None:
+                Arc(n, Noeud.liste_noeuds[n.dico['vers']]).visu(self.graphe)

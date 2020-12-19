@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from .trifusionviz import *
 
-version = '0.1'
+version = '0.2'
 
 if __name__ == "__main__":
     import random
 
 
-    liste = list(range(13))
+    liste = list(range(17))
     random.shuffle(liste)
 
     t = trifusionviz(liste)
