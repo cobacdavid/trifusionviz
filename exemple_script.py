@@ -12,5 +12,12 @@ u = tfv.trifusionviz(liste)
 u.fonction_ordre = lambda x, y: str(x) < str(y)
 u.noirblanc = True
 u.profondeurs_cachees = range(2, 2 + 7)
+u.forme_diviser, u.forme_arreter, u.forme_combiner = \
+    "invhouse", "rectangle", "house"
 # sortie png
 u.sortie("exemple_sortie_lexico", "png")
+
+v = tfv.trifusionviz(range(13))
+v.style = "invis"
+# sortie png
+v.sortie("exemple_invisible", "png")
