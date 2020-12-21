@@ -8,45 +8,46 @@ import math
 
 
 class Noeud:
-    numero = 0
-    profondeur_max = 0
-    liste_noeuds = []
-    liste_prof_cach = []
+    _numero = 0
+    _profondeur_max = 0
+    _liste_noeuds = []
+    _liste_prof_cach = []
+    _shape_diviser = "invtrapezium"
+    _shape_arret = "circle"
+    _shape_combiner = "trapezium"
 
     def __init__(self, contenu, profondeur):
-        self.numero = str(Noeud.numero)
-        Noeud.numero += 1
-
+        self.numero = Noeud._numero
+        self.profondeur = profondeur
+        #
+        Noeud._numero += 1
+        #
         self.liste = contenu
-        self.contenu = str(contenu)
-        
+        #
         if len(contenu) == 1:
-            self.shape = "circle"
-        elif profondeur <= Noeud.profondeur_max / 2:
-            self.shape = "invtrapezium"
+            self._shape = Noeud._shape_arret
+        elif profondeur <= Noeud._profondeur_max / 2:
+            self._shape = Noeud._shape_diviser
         else:
-            self.shape = "trapezium"
-
-        self.couleur = str(profondeur)
-
-        self.dico = {"numero": int(self.numero),
-                     "contenu": contenu,
+            self._shape = Noeud._shape_combiner
+        #
+        self.dico = {"numero": self.numero,
                      "profondeur": profondeur,
                      "de": None,
                      "vers": None}
-
-        Noeud.liste_noeuds.append(self)
+        #
+        Noeud._liste_noeuds.append(self)
 
     def visu(self, sousgraphe):
-        if int(self.couleur) not in Noeud.liste_prof_cach:
-            etiquette = self.contenu
+        if self.profondeur not in Noeud._liste_prof_cach:
+            etiquette = str(self.liste)
         else:
-            longueur_liste = len(self.contenu)
-            etiquette = " " * (longueur_liste  + 2)
-        sousgraphe.node(self.numero,
+            etiquette = " " * (len(self.liste)  + 2)
+        #
+        sousgraphe.node(str(self.numero),
                         label=etiquette,
-                        shape=self.shape,
-                        fillcolor=self.couleur)
+                        shape=self._shape,
+                        fillcolor=str(self.profondeur))
 
 
 class Arc:
@@ -55,20 +56,25 @@ class Arc:
         self.destination = noeud2
     
     def visu(self, sousgraphe, tp="s", hp="n"):
-        # sousgraphe.attr("edge", headclip="false", tailclip="false")
-        sousgraphe.edge(self.source.numero+ ":c", self.destination.numero + ":c",
-                style="solid",
-                headport=hp,
-                tailport=tp,
-                arrowhead="normal",
-                arrowsize=".5")
+        #
+        sousgraphe.edge(f"{self.source.numero}:c",
+                        f"{self.destination.numero}:c",
+                        style="solid",
+                        headport=hp,
+                        tailport=tp,
+                        arrowhead="normal",
+                        arrowsize=".5")
 
 def est_plus_petit(element1, element2, fonction=None):
+    """Renvoie True ou False selon l'ordre de element1 et element2
+    relativement à une fonction (optionnelle)
+    """
+    
     if not fonction: fonction = lambda a, b: a < b
     return fonction(element1, element2)
 
 
-def fusion(gauche, droite, fonction_ordre):
+def _fusion(gauche, droite, fonction_ordre):
     lG = len(gauche)
     lD = len(droite)
     iG, iD = 0, 0
@@ -98,34 +104,35 @@ def fusion(gauche, droite, fonction_ordre):
 
 class trifusionviz:
     def __init__(self, liste):
-        self.graphe = graphviz.Digraph(engine="dot")
+        self._graphe = graphviz.Digraph(engine="dot")
         # init classe noeud
-        Noeud.liste_noeuds = []
-        Noeud.numero = 0
+        Noeud._liste_noeuds = []
+        Noeud._numero = 0
         # 1 en trop car une profondeur manquante : celle de la
         # condtion de terminaison
-        self.nb_couleurs = 1 + 2 * math.ceil(math.log2(len(liste)))
-        Noeud.profondeur_max = self.nb_couleurs + 1
+        self._nb_profondeurs = 1 + 2 * math.ceil(math.log2(len(liste)))
+        Noeud._profondeur_max = self._nb_profondeurs + 1
         #
+        # attributs publics
         self.fonction_ordre = None
         self.noirblanc = False
         self.profondeurs_cachees = []
         #
-        self.racine = Noeud(liste, 1)
+        self._racine = Noeud(liste, 1)
 
     def sortie(self, nom_fichier, format="pdf"):
-        self._tri_fusion(self.racine)
+        self._tri_fusion(self._racine)
         #
-        Noeud.liste_prof_cach = self.profondeurs_cachees
-        self.graphe.attr("node", colorscheme=f"rdylgn{self.nb_couleurs}")
-        self.graphe.attr("node", style="rounded")
+        Noeud._liste_prof_cach = self.profondeurs_cachees
+        self._graphe.attr("node", colorscheme=f"rdylgn{self._nb_profondeurs}")
+        self._graphe.attr("node", style="rounded")
         if not self.noirblanc:
-            self.graphe.attr("node", style="filled")
-        # self.graphe.attr("node", style="invis")
-        self.racine.visu(self.graphe)
+            self._graphe.attr("node", style="filled")
+        #
+        self._racine.visu(self._graphe)
         self._trace()
         #
-        self.graphe.render(filename=nom_fichier, format=format)
+        self._graphe.render(filename=nom_fichier, format=format)
 
     def _tri_fusion(self, noeud, profondeur=1):
         liste = noeud.liste
@@ -140,29 +147,29 @@ class trifusionviz:
 
         ng = self._tri_fusion(og, profondeur + 1)
         nd = self._tri_fusion(od, profondeur + 1)
-        f = fusion(ng.liste, nd.liste, self.fonction_ordre)
-        nf = Noeud(f, self.nb_couleurs - profondeur + 1)
+        f = _fusion(ng.liste, nd.liste, self.fonction_ordre)
+        nf = Noeud(f, self._nb_profondeurs - profondeur + 1)
 
-        og.dico["de"] = noeud.dico["numero"]
-        od.dico["de"] = noeud.dico["numero"]
-        ng.dico["vers"] = nf.dico["numero"]
-        nd.dico["vers"] = nf.dico["numero"]
+        og.dico["de"] = noeud.numero # noeud.dico["numero"]
+        od.dico["de"] = noeud.numero # noeud.dico["numero"]
+        ng.dico["vers"] = nf.numero # nf.dico["numero"]
+        nd.dico["vers"] = nf.numero # nf.dico["numero"]
 
         return nf
 
     def _trace(self):
         # clusters des noeuds avec la même profondeur
-        for i in range(Noeud.profondeur_max + 1):
-            with self.graphe.subgraph(name=str(i)) as prof:
+        for i in range(Noeud._profondeur_max + 1):
+            with self._graphe.subgraph(name=str(i)) as prof:
                 prof.attr(rank="same")
-                for n in Noeud.liste_noeuds:
-                    if n.dico["profondeur"] == i:
+                for n in Noeud._liste_noeuds:
+                    if n.profondeur == i:
                         n.visu(prof)
 
         # les arcs
-        for n in Noeud.liste_noeuds:
+        for n in Noeud._liste_noeuds:
             if n.dico['de'] is not None:
-                Arc(Noeud.liste_noeuds[n.dico['de']], n).visu(self.graphe)
+                Arc(Noeud._liste_noeuds[n.dico['de']], n).visu(self._graphe)
             if n.dico['vers'] is not None:
-                Arc(n, Noeud.liste_noeuds[n.dico['vers']]).visu(self.graphe)
+                Arc(n, Noeud._liste_noeuds[n.dico['vers']]).visu(self._graphe)
 
