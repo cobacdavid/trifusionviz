@@ -175,12 +175,22 @@ class trifusionviz:
 
     def _trace(self):
         # clusters des noeuds avec la même profondeur
+        liste_singletons = []
         for i in range(1, Noeud._profondeur_max + 1):
             with self._graphe.subgraph(name=str(i)+"sub") as prof:
                 prof.attr(rank="same")
                 for n in Noeud._liste_noeuds:
-                    if n.profondeur == i:
+                    # on discrimine pour aligner les noeuds de
+                    # longueur 1
+                    if n.profondeur == i and len(n.liste) != 1:
                         n.visu(prof)
+                    elif len(n.liste) == 1:
+                        liste_singletons.append(n)
+        # les noeuds de longueur 1
+        with self._graphe.subgraph(name="seulsub") as prof:
+            prof.attr(rank="same")
+            for n in liste_singletons:
+                n.visu(prof)
 
         # les arcs
         for n in Noeud._liste_noeuds:
@@ -189,4 +199,3 @@ class trifusionviz:
                 Arc(Noeud._liste_noeuds[parent], n).visu(self._graphe)
             for enfant in n._vers:
                 Arc(n, Noeud._liste_noeuds[enfant]).visu(self._graphe)
-

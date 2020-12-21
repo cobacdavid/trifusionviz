@@ -37,7 +37,7 @@ v.sortie("exemple_invisible", "png")
 
 ## Exemples des sorties
 
-<img src="20201221-105704-Evince.png" width="800">
+<img src="20201221-120525-Evince.png" width="800">
 
 <img src="exemple_sortie_lexico.png" width="800">
 
