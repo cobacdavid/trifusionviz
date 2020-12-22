@@ -11,7 +11,7 @@ $ pip3 install trifusionviz
 L'installation fournit la commande `tfv`
 
 ``` python
-$ ./tfv -h
+$ tfv -h
 usage: tfv [-h] [-nb] [-al] [-ft [FORMAT]] [-fo [FONCTIONORDRE]]
            [liste] [fichier]
 
