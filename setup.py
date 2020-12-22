@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name='trifusionviz',
-    version='0.5',
+    version='0.6',
     description='illustration du tri fusion',
     long_description_content_type='text/markdown',
     long_description=long_description,

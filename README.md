@@ -16,7 +16,8 @@ liste = list(range(13))
 random.shuffle(liste)
 
 t = tfv.trifusionviz(liste)
-# sortie pdf
+# sorties pdf : graphe et appels
+t.sortie_appels = True
 t.sortie("exemple_sortie")
 
 u = tfv.trifusionviz(liste)
@@ -35,9 +36,11 @@ v.sortie("exemple_invisible", "png")
 
 ```
 
-## Exemples des sorties
+## Sorties de l'exemple
 
-<img src="20201221-120525-Evince.png" width="800">
+<img src="capture_sortie.png" width="800">
+
+<img src="capture_sortie_appels.png" width="800">
 
 <img src="exemple_sortie_lexico.png" width="800">
 

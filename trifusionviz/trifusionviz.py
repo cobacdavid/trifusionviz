@@ -5,7 +5,7 @@ __date__ = 20201211
 
 import graphviz
 import math
-
+from .recappels import * 
 
 class Noeud:
     _numero = 0
@@ -121,11 +121,18 @@ class trifusionviz:
         self.forme_combiner = None
         self.forme_arreter = None
         self.style = None
+        self.sortie_appels = False
         #
         self._racine = Noeud(liste, 1)
 
     def sortie(self, nom_fichier, format="pdf"):
+        if self.sortie_appels:
+            r_appels = Recappels()
+        #
         self._tri_fusion(self._racine)
+        #
+        if self.sortie_appels:
+            r_appels.visu(nom_fichier + "_appels", format)
         #
         Noeud._liste_prof_cach = self.profondeurs_cachees
         self._graphe.attr("node", colorscheme=f"rdylgn{self._nb_profondeurs}")
@@ -145,7 +152,6 @@ class trifusionviz:
         if self.forme_diviser:
             Noeud._shape_diviser = self.forme_diviser
         #
-        # self._racine.visu(self._graphe)
         self._trace()
         #
         self._graphe.render(filename=nom_fichier, format=format)
@@ -153,7 +159,9 @@ class trifusionviz:
     def _tri_fusion(self, noeud, profondeur=1):
         liste = noeud.liste
         #
-        if len(liste) == 1: return noeud
+        if len(liste) == 1:
+            bloc = Bloc(liste, None, None, None, None, None)
+            return noeud, bloc
         #
         iMilieu = (len(liste) + 1) // 2
         g = liste[:iMilieu]
@@ -161,8 +169,8 @@ class trifusionviz:
         og = Noeud(g, profondeur + 1)
         od = Noeud(d, profondeur + 1)
         #
-        ng = self._tri_fusion(og, profondeur + 1)
-        nd = self._tri_fusion(od, profondeur + 1)
+        ng, bloc_ng = self._tri_fusion(og, profondeur + 1)
+        nd, bloc_nd = self._tri_fusion(od, profondeur + 1)
         f = _fusion(ng.liste, nd.liste, self.fonction_ordre)
         nf = Noeud(f, self._nb_profondeurs - profondeur + 1)
         #
@@ -171,7 +179,19 @@ class trifusionviz:
         ng._vers.append(nf.numero)
         nd._vers.append(nf.numero)
         #
-        return nf
+        bloc = Bloc(liste,
+                    og.liste, od.liste,
+                    ng.liste, nd.liste,
+                    nf.liste)
+        #
+        Bloc.arete(bloc, ":tfg:ne", bloc_ng, ":arg")
+        Bloc.arete(bloc, ":tfd:ne", bloc_nd, ":arg")
+        sous_id = ":f" if len(ng.liste) !=1 else ":r"
+        Bloc.arete(bloc_ng, sous_id, bloc, ":tfg")
+        sous_id = ":f" if len(nd.liste) !=1 else ":r"
+        Bloc.arete(bloc_nd, sous_id, bloc, ":tfd")
+        #
+        return nf, bloc
 
     def _trace(self):
         # clusters des noeuds avec la même profondeur
@@ -191,7 +211,6 @@ class trifusionviz:
             prof.attr(rank="same")
             for n in liste_singletons:
                 n.visu(prof)
-
         # les arcs
         for n in Noeud._liste_noeuds:
             # a priori chaque liste ci-dessous est vide ou un singleton
