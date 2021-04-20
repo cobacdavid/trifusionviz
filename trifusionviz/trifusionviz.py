@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "david cobac"
 __date__ = 20201211
+__last_modified__ = 20210419
 
 
 import graphviz
@@ -154,7 +155,11 @@ class trifusionviz:
         #
         self._trace()
         #
-        self._graphe.render(filename=nom_fichier, format=format)
+        if nom_fichier == "pipe":
+            return self._graphe.pipe(format=format).decode("utf-8")
+        else:
+            self._graphe.render(filename=nom_fichier, format=format)
+        
 
     def _tri_fusion(self, noeud, profondeur=1):
         liste = noeud.liste

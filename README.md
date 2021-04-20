@@ -19,7 +19,7 @@ Application facilitant l'utilisation de trifusionviz
 
 positional arguments:
   liste                 liste Python avec guillemets
-  fichier               nom du fichier de sortie
+  fichier               nom du fichier de sortie. Mettre "pipe" pour une sortie console.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -29,7 +29,6 @@ optional arguments:
                         format fichier, par défaut : pdf
   -fo [FONCTIONORDRE], --fonctionordre [FONCTIONORDRE]
                         par défaut : lambda x, y: x < y
-
 ```
 
 ### Exemples :
@@ -47,8 +46,13 @@ optional arguments:
 - Avec une liste pour seul argument, par exemple `$ tfv "[1, 5, 2]"`, cela produit dans le répertoire courant un fichier
 `Digraph.gv.pdf`.
 
+- la sortie `pipe` (en nom de fichier) produira une sortie console
+  au format souhaité permettant le _pipe_ avec un autre
+  programme.
+
 - `tfv` n'implémente pas pour le moment toutes les fonctionnalités
-  de la bibliothèque.
+de la bibliothèque.
+
 
 ## Utilisation en module
 

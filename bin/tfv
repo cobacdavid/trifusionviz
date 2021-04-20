@@ -11,12 +11,24 @@ parseur_args = argparse.ArgumentParser(
     description="""Application facilitant l'utilisation de trifusionviz""")
 
 
-parseur_args.add_argument('-nb', '--noirblanc', action="store_true", help='Noir et Blanc')
-parseur_args.add_argument('-al', '--appels', action="store_true", help='sortie des appels')
-parseur_args.add_argument('liste', nargs="?", help="liste Python avec guillemets")
-parseur_args.add_argument('fichier', nargs="?", help='nom du fichier de sortie')
-parseur_args.add_argument('-ft', '--format', nargs="?", const="pdf", help='format fichier, par défaut : pdf')
-parseur_args.add_argument('-fo', '--fonctionordre', nargs="?", help="par défaut : lambda x, y: x < y")
+parseur_args.add_argument('-nb', '--noirblanc',
+                          action="store_true", help='Noir et Blanc')
+parseur_args.add_argument('-al', '--appels',
+                          action="store_true",
+                          help='sortie des appels')
+parseur_args.add_argument('liste',
+                          nargs="?",
+                          help="liste Python avec guillemets")
+parseur_args.add_argument('fichier',
+                          nargs="?",
+                          help='nom du fichier de sortie. Mettre "pipe" pour une sortie console.')
+parseur_args.add_argument('-ft', '--format',
+                          nargs="?",
+                          const="pdf",
+                          help='format fichier, par défaut : pdf')
+parseur_args.add_argument('-fo', '--fonctionordre',
+                          nargs="?",
+                          help="par défaut : lambda x, y: x < y")
 
 
 args = parseur_args.parse_args()
@@ -28,4 +40,7 @@ if args.fonctionordre:
     t.fonction_ordre = fonction_ordre
 t.noirblanc = True if args.noirblanc else False
 t.sortie_appels = True if args.appels else False
-t.sortie(args.fichier, args.format)
+
+s = t.sortie(args.fichier, args.format)
+if s:
+    print(s)
